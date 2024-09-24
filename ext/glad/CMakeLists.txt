@@ -1,0 +1,5 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+PROJECT(glad)
+
+ADD_LIBRARY(glad include/glad/gl.h src/gl.c)
+TARGET_INCLUDE_DIRECTORIES(glad PUBLIC include/)

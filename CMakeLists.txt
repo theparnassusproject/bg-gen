@@ -5,6 +5,9 @@ ADD_SUBDIRECTORY("ext/glad")
 
 ADD_EXECUTABLE(bg-gen src/main.c)
 
+TARGET_INCLUDE_DIRECTORIES(bg-gen PUBLIC "ext/stb/include/")
+TARGET_LINK_LIBRARIES(bg-gen m)
+
 TARGET_LINK_LIBRARIES(bg-gen glad)
 
 FIND_PACKAGE(glfw3 CONFIG REQUIRED)

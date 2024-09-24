@@ -1,5 +1,7 @@
+#define STB_IMAGE_IMPLEMENTATION
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
+#include <stb_image.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -7,10 +9,10 @@ const int WIDTH = 1152;
 const int HEIGHT = 648;
 
 float vertices[] = {
-   1.0f,  1.0f,
-   1.0f, -1.0f,
-  -1.0f, -1.0f,
-  -1.0f,  1.0f,
+   1.0f,  1.0f, 1.0f, 1.0f,
+   1.0f, -1.0f, 0.0f, 0.0f,
+  -1.0f, -1.0f, 0.0f, 0.0f,
+  -1.0f,  1.0f, 0.0f, 1.0f,
 };
 unsigned int indices[] = {
   0, 1, 3,
@@ -57,8 +59,36 @@ int main()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
   int shader = load_shaders("shaders/background.vertex.glsl", "shaders/background.fragment.glsl");
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(1);
+
+  unsigned int texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  int width, height, n_ch;
+  unsigned char *data = stbi_load("assets/bg1.png", &width, &height, &n_ch, 0);
+
+  if (data)
+  {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  }
+  else
+  {
+    fprintf(stderr, "Could not load texture.\n");
+    glfwTerminate();
+    return EXIT_FAILURE;
+  }
+
+  stbi_image_free(data);
 
   while (!glfwWindowShouldClose(window))
   {
@@ -66,6 +96,7 @@ int main()
     glfwPollEvents();
 
     glUseProgram(shader);
+    glBindTexture(GL_TEXTURE_2D, texture);
     glBindVertexArray(vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
